@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Activo - Suraki</title>
+    <style>
+        /* DISEÑO SURAKI: ROJO Y BLANCO */
+        :root {
+            --rojo: #D32F2F;
+            --gris: #f4f4f4;
+            --texto: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--gris);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .tarjeta {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .header {
+            background: var(--rojo);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .foto-container {
+            width: 100%;
+            height: 250px;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 5px solid var(--rojo);
+        }
+
+        .foto-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .cuerpo {
+            padding: 25px;
+        }
+
+        .etiqueta-id {
+            background: #222;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .titulo {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--texto);
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+
+        .dato-fila {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+
+        .dato-label {
+            color: #888;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .dato-valor {
+            color: #000;
+            font-weight: 500;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 25px;
+            background: white;
+            color: var(--rojo);
+            border: 2px solid var(--rojo);
+            text-align: center;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--rojo);
+            color: white;
+        }
+
+        /* Estado de carga */
+        #loading {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="tarjeta" id="app">
+        <div class="header">
+            <h1>SURAKI</h1>
+            <p>SISTEMA DE ACTIVOS FIJOS</p>
+        </div>
+
+        <div id="loading">Cargando información...</div>
+
+        <div id="contenido" style="display:none;">
+            <div class="foto-container">
+                <img id="img-activo" src="" onerror="this.src='https://via.placeholder.com/400x300?text=SIN+FOTO'">
+            </div>
+
+            <div class="cuerpo">
+                <span class="etiqueta-id" id="txt-id">ID: ---</span>
+                <div class="titulo" id="txt-desc">---</div>
+
+                <div class="dato-fila">
+                    <span class="dato-label">Marca</span>
+                    <span class="dato-valor" id="txt-marca">---</span>
+                </div>
+                <div class="dato-fila">
+                    <span class="dato-label">Modelo</span>
+                    <span class="dato-valor" id="txt-modelo">---</span>
+                </div>
+                <div class="dato-fila">
+                    <span class="dato-label">Serial</span>
+                    <span class="dato-valor" id="txt-serial">---</span>
+                </div>
+                <div class="dato-fila">
+                    <span class="dato-label">Sucursal</span>
+                    <span class="dato-valor" id="txt-sede">---</span>
+                </div>
+
+                <a href="https://wa.me/584120000000?text=Reporto novedad con el activo..." class="btn">Reportar
+                    Novedad</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // LÓGICA: Leer URL -> Buscar en JSON -> Mostrar Datos
+        async function cargarDatos() {
+            // 1. Obtener el ID de la URL (ej: ?id=RE-PV-001)
+            const params = new URLSearchParams(window.location.search);
+            const idBuscado = params.get('id');
+
+            if (!idBuscado) {
+                document.getElementById('loading').innerText = "Error: No se escaneó ningún código válido.";
+                return;
+            }
+
+            try {
+                // 2. Descargar la "Base de Datos" (el archivo JSON)
+                const response = await fetch('datos_inventario.json');
+                const datos = await response.json();
+
+                // 3. Buscar el activo por ID
+                const activo = datos.find(item => item.id === idBuscado);
+
+                if (activo) {
+                    // 4. Rellenar la tarjeta con los datos reales
+                    document.getElementById('txt-id').innerText = `ID: ${activo.id}`;
+                    document.getElementById('txt-desc').innerText = activo.descripcion;
+                    document.getElementById('txt-marca').innerText = activo.marca || "Genérico";
+                    document.getElementById('txt-modelo').innerText = activo.modelo || "---";
+                    document.getElementById('txt-serial').innerText = activo.serial || "S/N";
+                    document.getElementById('txt-sede').innerText = activo.sede;
+
+                    // Intentar cargar la foto (debe llamarse igual al ID, ej: RE-PV-001.jpg)
+                    document.getElementById('img-activo').src = `img/${activo.id}.jpg`;
+
+                    // Mostrar tarjeta
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('contenido').style.display = 'block';
+                } else {
+                    document.getElementById('loading').innerText = "Activo no encontrado en la base de datos.";
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loading').innerText = "Error cargando la base de datos.";
+            }
+        }
+
+        cargarDatos();
+    </script>
+</body>
+
+</html>
